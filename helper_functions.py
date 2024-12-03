@@ -16,7 +16,7 @@ from visualisations import (
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv("../data.csv")
+    df = pd.read_csv("data.csv")
 
     # Drop unnecessary columns
     if "Unnamed: 0" in df.columns:

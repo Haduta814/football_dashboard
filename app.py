@@ -19,9 +19,7 @@ def main():
     filters = render_sidebar(df)  # Collect filters from the sidebar
     filtered_df = apply_filters(df, filters)  # Apply filters to the data
 
-    if not filtered_df.empty:
-        st.write(f"Games recorded: {len(filtered_df)}")
-    else:
+    if filtered_df.empty:
         st.warning("Filtered data is empty. Please adjust your filters.")
 
     # Tabs

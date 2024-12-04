@@ -6,8 +6,6 @@ import plotly.express as px
 from visualisations import (
     plot_spi_over_time,
     plot_importance_over_time,
-    plot_win_percentage_vs_importance,
-    plot_win_percentage_vs_spi,
     plot_team_performance_gauges,
     plot_cumulative_goal_difference
 )
@@ -147,11 +145,10 @@ def display_metrics(filtered_df, filters):
     selected_leagues = filters["leagues"]
     selected_seasons = filters["seasons"]
 
-    # Initialize Tabs
-    tabs = st.tabs(["Key Metrics", "Performance Metrics", "Efficiency Metrics", "Advanced Metrics"])
     
     # Global Metrics (for "All Teams" or when no teams are selected)
     if not selected_teams or "All" in selected_teams:
+        tabs = tabs = st.tabs(["Key Metrics", "Performance Metrics"])
         with tabs[0]:
             st.subheader("Key Metrics for All Teams")
             col1, col2, col3 = st.columns(3)
@@ -183,22 +180,20 @@ def display_metrics(filtered_df, filters):
                 st.metric("High Stakes Matches", high_stakes_matches)
                 st.metric("Avg Importance Gap", avg_importance_gap)
                 st.metric("Avg Match Pressure Index", avg_pressure_index)
-        with tabs[0]:
-            st.subheader("Key Metrics for All Teams")
-        
-        # Metric Descriptions
-        with st.expander("What do these metrics mean?"):
-            st.write("""
-            - **Total Matches**: The total number of matches played in the filtered data.
-            - **Avg Goals per Match**: The average number of goals scored per match.
-            - **Avg Match Quality**: The average match quality score, based on various parameters.
-            - **Home Win %**: Percentage of matches won by home teams.
-            - **Away Win %**: Percentage of matches won by away teams.
-            - **Draw %**: Percentage of matches that ended in a draw.
-            - **High Stakes Matches**: Number of matches classified as high stakes (Importance above 0.8 for one or both of the teams).
-            - **Avg Importance Gap**: Average difference in importance levels between the two teams in matches.
-            - **Avg Match Pressure Index**: Average pressure experienced during matches, based on importance and stakes.
-            """)
+        ################################################################################################################################################ UPDATE MATCH QUALITY INFO
+            # Metric Descriptions
+            with st.expander("What do these metrics mean?"):
+                st.write("""
+                    - **Total Matches**: The total number of matches played in the filtered data.
+                    - **Avg Goals per Match**: The average number of goals scored per match.
+                    - **Avg Match Quality**: The average match quality score, based on various parameters. 
+                    - **Home Win %**: Percentage of matches won by home teams.
+                    - **Away Win %**: Percentage of matches won by away teams.
+                    - **Draw %**: Percentage of matches that ended in a draw.
+                    - **High Stakes Matches**: Number of matches classified as high stakes (Importance above 0.8 for one or both of the teams).
+                    - **Avg Importance Gap**: Average difference in importance levels between the two teams in matches.
+                    - **Avg Match Pressure Index**: Average pressure experienced during matches, based on importance and stakes.
+                    """)
 
         col1, col2, col3 = st.columns(3)
 ############################### PERFORMANCE METRICS FOR ALL TEAMS
@@ -220,10 +215,19 @@ def display_metrics(filtered_df, filters):
                 )
                 st.metric("Top Scoring Team", top_scorer)
                 st.metric("Best Defensive Team", best_defensive_team)
+            with st.expander("What do these metrics mean?"):
+                st.write("""
+                - **Avg Home SPI Change**: Average change in Soccer Power Index (SPI) for home teams across matches.
+                - **Avg Away SPI Change**: Average change in SPI for away teams across matches.
+                - **Top Scoring Team**: The team with the highest total goals scored.
+                - **Best Defensive Team**: The team that conceded the least number of goals.
+                """)
+
 
 ############################### FILTERED TEAM METRICS
 
     else:
+        tabs = st.tabs(["Key Metrics", "Performance Metrics", "Efficiency Metrics", "Advanced Metrics"])
         for team in selected_teams:
             team_df = filtered_df[(filtered_df["team1"] == team) | (filtered_df["team2"] == team)]
 
@@ -242,6 +246,14 @@ def display_metrics(filtered_df, filters):
                     st.metric("High Stakes Matches", team_df["High Stakes"].sum())
                 with col3:
                     st.metric("Match Quality (Avg)", f"{team_df['Match Quality'].mean():.2f}")
+                with st.expander("What do these metrics mean?"):
+                    st.write("""
+                    - **Total Matches**: The total number of matches played by the team in the filtered dataset.
+                    - **Top Match Quality**: The highest recorded match quality score for the team.
+                    - **Avg Goals per Match**: The average number of goals scored in matches involving the team.
+                    - **High Stakes Matches**: The number of matches classified as high stakes based on importance levels.
+                    - **Match Quality (Avg)**: The average match quality score for all matches involving the team.
+                    """)
 
             with tabs[1]:
                 st.subheader(f"Performance Metrics for {team}")
@@ -269,7 +281,18 @@ def display_metrics(filtered_df, filters):
                     st.metric("Avg SPI Change", f"{avg_spi_change:.2f}" if avg_spi_change else "N/A")
                     st.metric("Total Losses", len(team_df)-draws - home_wins - away_wins)
                     st.metric("Loss %", loss_pct)
-                    
+                
+                with st.expander("What do these metrics mean?"):
+                    st.write("""
+                        - **Home Wins**: The number of matches where the home team scored more goals than the away team.
+                        - **Away Wins**: The number of matches where the away team scored more goals than the home team.
+                        - **Draws**: The number of matches that ended with both teams scoring the same number of goals.
+                        - **Total Wins**: The sum of Home Wins and Away Wins for a selected team or overall.
+                        - **Win %**: The percentage of matches won (total wins divided by total matches) by a team or overall.
+                        -    **Draw %**: The percentage of matches that ended in a draw out of the total matches played.
+                        -   **Total Losses**: The number of matches a team lost, calculated as the total matches minus wins and draws.
+                        -   **Loss %**: The percentage of matches lost (total losses divided by total matches) by a team or overall.""")
+
             with tabs[2]:
                 st.subheader(f"Efficiency stats for {team}")
                 col1, col2, col3 = st.columns(3)
@@ -294,6 +317,14 @@ def display_metrics(filtered_df, filters):
 
                     avg_away_xg_diff = team_df["Away xG Difference"].mean()
                     st.metric("Away xG Difference", f"{avg_away_xg_diff:.2f}" if pd.notnull(avg_away_xg_diff) else "N/A")
+                with st.expander("What do these metrics mean?"):
+                    st.write("""
+                    - **Home xG Difference**: The difference between the expected goals (xG) and actual goals scored by the home team. It indicates whether the team underperformed or overperformed based on their chances created.
+                    - **Away xG Difference**: The difference between the expected goals (xG) and actual goals scored by the away team. It reflects the away team's efficiency in converting chances into goals.
+                    - **Avg Home Efficiency**: Average efficiency of home teams in converting chances into goals.
+                    - **Avg Away Efficiency**: Average efficiency of away teams in converting chances into goals.
+                    - **Overall Efficiency**: Combined efficiency metric for all matches, averaged across teams.
+                    """)
 
             with tabs[3]:
                 st.subheader(f"More advanced stats for {team}")
@@ -322,6 +353,16 @@ def display_metrics(filtered_df, filters):
 
                     high_stakes_matches = team_df["High Stakes"].sum()
                     st.metric("High Stakes Matches", high_stakes_matches)
+                with st.expander("What do these metrics mean?"):
+                    st.write("""
+                    - **Avg Match Pressure Index**: The average pressure level during matches, based on stakes, importance, and other contextual factors.
+                    - **Avg Importance Gap**: The average difference in importance levels between the team and their opponents.
+                    - **Avg Home SPI Change**: The average change in the team's Soccer Power Index (SPI) after home matches.
+                    - **Avg Away SPI Change**: The average change in the team's SPI after away matches.
+                    - **Home Overperformance**: The average difference between actual and expected performance (e.g., goals vs. xG) in home matches.
+                    - **Away Overperformance**: The average difference between actual and expected performance (e.g., goals vs. xG) in away matches.
+                    - **High Stakes Matches**: The total number of matches classified as high stakes, indicating games with significant importance or outcomes.
+                    """)
                             
                 # If multiple teams are selected, show comparison table
                 if len(selected_teams) > 1:
@@ -381,17 +422,7 @@ def display_visualizations(filtered_df, selected_teams):
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        # Goal Distribution
-        st.subheader("Goal Distribution")
-        fig = px.histogram(
-            filtered_df,
-            x="Total Goals",
-            nbins=20,
-            title="Distribution of Total Goals Scored per Match",
-            labels={"Total Goals": "Goals"},
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
+        
         # Importance vs. Match Quality
         st.subheader("Importance vs. Match Quality")
         fig = px.scatter(

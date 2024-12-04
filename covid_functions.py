@@ -148,7 +148,26 @@ def display_covid_visualizations(df, selected_teams=None):
         st.plotly_chart(fig_spi_vs_covid, use_container_width=True)
     else:
         st.warning("Please select specific team(s) to view SPI changes against COVID infection rates.")
-        
+
+
+def calculate_team_metrics(data, team):
+        total_matches = len(data)
+        if total_matches == 0:
+            return {"Win %": 0, "Draw %": 0, "Loss %": 0}
+
+        wins = ((data["team1"] == team) & (data["score1"] > data["score2"])).sum()
+        wins += ((data["team2"] == team) & (data["score2"] > data["score1"])).sum()
+
+        draws = (data["score1"] == data["score2"]).sum()
+        losses = total_matches - wins - draws
+
+        return {
+            "Win %": (wins / total_matches) * 100,
+            "Draw %": (draws / total_matches) * 100,
+            "Loss %": (losses / total_matches) * 100,
+        }
+
+
 def display_covid_metrics(df, selected_teams=None):
     st.subheader("COVID Impact Metrics")
 
@@ -176,27 +195,10 @@ def display_covid_metrics(df, selected_teams=None):
             "Loss %": loss_percentage,
         }
 
-    def calculate_team_metrics(data, team):
-        total_matches = len(data)
-        if total_matches == 0:
-            return {"Win %": 0, "Draw %": 0, "Loss %": 0}
-
-        wins = ((data["team1"] == team) & (data["score1"] > data["score2"])).sum()
-        wins += ((data["team2"] == team) & (data["score2"] > data["score1"])).sum()
-
-        draws = (data["score1"] == data["score2"]).sum()
-        losses = total_matches - wins - draws
-
-        return {
-            "Win %": (wins / total_matches) * 100,
-            "Draw %": (draws / total_matches) * 100,
-            "Loss %": (losses / total_matches) * 100,
-        }
 
     if not selected_teams or "All" in selected_teams:
         # League-wide metrics
         st.write("### League-Wide Performance Metrics")
-        st.subheader("Displaying league-wide metrics for all matches (team1).")
         league_metrics = {
             "Pre-COVID": calculate_league_metrics(pre_covid),
             "During COVID": calculate_league_metrics(during_covid),
